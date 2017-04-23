@@ -29,13 +29,11 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         repository = new LocationRepository(getApplicationContext());
         gps.setText("" + repository.isGpsEnabled());
-        repository.test();
     }
 
     @Override protected void onStart() {
         super.onStart();
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (repository.isPermissionsGranted()) {
             // Permission to access the location is missing.
             PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
                     Manifest.permission.ACCESS_FINE_LOCATION, true);

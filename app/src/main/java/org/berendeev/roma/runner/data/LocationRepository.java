@@ -12,6 +12,8 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 
 import java.util.List;
 
@@ -78,9 +80,9 @@ public class LocationRepository {
         addNmeaListener();
     }
 
-    private boolean isPermissionsGranted(){
-        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    public boolean isPermissionsGranted(){
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void addNmeaListener() throws SecurityException{
@@ -94,14 +96,15 @@ public class LocationRepository {
     @RequiresApi(api = Build.VERSION_CODES.N)
     private class MyOnNmeaMessageListener implements OnNmeaMessageListener{
         @Override public void onNmeaMessage(String message, long timestamp) {
-            System.out.println(message);
+            Log.d("myTag", message);
         }
     }
 
     private class MyGpsNmeaListener implements GpsStatus.NmeaListener{
 
         @Override public void onNmeaReceived(long timestamp, String nmea) {
-            System.out.println(nmea);
+            Log.d("myTag", nmea);
         }
     }
+
 }
