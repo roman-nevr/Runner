@@ -3,11 +3,14 @@ package org.berendeev.roma.runner.data;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.location.OnNmeaMessageListener;
+import android.os.Build;
 import android.provider.Settings;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 
 import java.util.List;
@@ -15,28 +18,17 @@ import java.util.List;
 public class LocationRepository {
 
     private Context context;
+    private LocationManager locationManager;
 
     public LocationRepository(Context context) {
         this.context = context;
+        locationManager = getLocationManager();
     }
 
     private static final String NETWORK = LocationManager.NETWORK_PROVIDER;
     private static final String GPS = LocationManager.GPS_PROVIDER;
 
     public void getLocation() {
-        LocationManager locationManager = getLocationManager();
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-//            return TODO;
-//            return locationManager.getLastKnownLocation(GPS);
-        }
     }
 
     private LocationManager getLocationManager(){
@@ -82,8 +74,34 @@ public class LocationRepository {
 //        })
     }
 
+    public void test(){
+        addNmeaListener();
+    }
+
     private boolean isPermissionsGranted(){
-        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED;
+        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void addNmeaListener() throws SecurityException{
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            locationManager.addNmeaListener(new MyOnNmeaMessageListener());
+        }else {
+            locationManager.addNmeaListener(new MyGpsNmeaListener());
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private class MyOnNmeaMessageListener implements OnNmeaMessageListener{
+        @Override public void onNmeaMessage(String message, long timestamp) {
+            System.out.println(message);
+        }
+    }
+
+    private class MyGpsNmeaListener implements GpsStatus.NmeaListener{
+
+        @Override public void onNmeaReceived(long timestamp, String nmea) {
+            System.out.println(nmea);
+        }
     }
 }
