@@ -30,9 +30,6 @@ public class LocationRepository {
     private static final String NETWORK = LocationManager.NETWORK_PROVIDER;
     private static final String GPS = LocationManager.GPS_PROVIDER;
 
-    public void getLocation() {
-    }
-
     private LocationManager getLocationManager(){
         return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
     }
@@ -59,21 +56,13 @@ public class LocationRepository {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
     }
 
+    //check if location service enabled in settings
     public boolean isGpsEnabled() {
         if (getLocationManager().isProviderEnabled(GPS)) {
             return true;
         }else {
             return false;
         }
-    }
-
-    private void isGpsAviable(){
-
-//        getLocationManager().addNmeaListener(new OnNmeaMessageListener() {
-//            @Override public void onNmeaMessage(String message, long timestamp) {
-//
-//            }
-//        })
     }
 
     public void test(){
@@ -101,7 +90,6 @@ public class LocationRepository {
     }
 
     private class MyGpsNmeaListener implements GpsStatus.NmeaListener{
-
         @Override public void onNmeaReceived(long timestamp, String nmea) {
             Log.d("myTag", nmea);
         }
