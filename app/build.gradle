@@ -60,6 +60,12 @@ dependencies {
     provided 'com.jakewharton:butterknife-compiler:8.4.0'
     //Timber
     compile 'com.jakewharton.timber:timber:4.5.1'
+
     //Maps
     compile 'com.google.android.gms:play-services-maps:10.2.1'
+    //Location
+    compile 'com.google.android.gms:play-services-location:10.2.1'
+
+    //Yandex Map Kit
+    compile 'ru.yandex:yandexmapkit:2.5.4@aar'
 }

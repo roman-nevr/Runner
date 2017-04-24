@@ -2,6 +2,9 @@ package org.berendeev.roma.runner;
 
 import org.junit.Test;
 
+import java.util.Date;
+import java.util.Locale;
+
 import static org.junit.Assert.*;
 
 /**
@@ -13,5 +16,11 @@ public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() throws Exception {
         assertEquals(4, 2 + 2);
+    }
+
+    @Test
+    public void stringFormat(){
+        String string = (String.format(Locale.getDefault(), "time: %1$tF %1$tT", new Date(System.currentTimeMillis())));
+        System.out.println(string);
     }
 }
