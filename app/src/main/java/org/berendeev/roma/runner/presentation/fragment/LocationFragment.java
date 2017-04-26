@@ -1,58 +1,65 @@
-package org.berendeev.roma.runner.presentation;
+package org.berendeev.roma.runner.presentation.fragment;
 
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import org.berendeev.roma.runner.R;
 
 import java.util.Date;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
-public class LocationActivity extends AppCompatActivity {
-    TextView tvEnabledGPS;
-    TextView tvStatusGPS;
-    TextView tvLocationGPS;
-    TextView tvEnabledNet;
-    TextView tvStatusNet;
-    TextView tvLocationNet;
+import static android.content.Context.LOCATION_SERVICE;
 
+
+public class LocationFragment extends Fragment {
+
+    @BindView(R.id.tvEnabledGPS) TextView tvEnabledGPS;
+    @BindView(R.id.tvStatusGPS) TextView tvStatusGPS;
+    @BindView(R.id.tvLocationGPS) TextView tvLocationGPS;
+    @BindView(R.id.tvEnabledNet) TextView tvEnabledNet;
+    @BindView(R.id.tvStatusNet) TextView tvStatusNet;
+    @BindView(R.id.tvLocationNet) TextView tvLocationNet;
+    @BindView(R.id.btnLocationSettings) Button btnLocationSettings;
     private LocationManager locationManager;
-    StringBuilder sbGPS = new StringBuilder();
-    StringBuilder sbNet = new StringBuilder();
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.location);
-        tvEnabledGPS = (TextView) findViewById(R.id.tvEnabledGPS);
-        tvStatusGPS = (TextView) findViewById(R.id.tvStatusGPS);
-        tvLocationGPS = (TextView) findViewById(R.id.tvLocationGPS);
-        tvEnabledNet = (TextView) findViewById(R.id.tvEnabledNet);
-        tvStatusNet = (TextView) findViewById(R.id.tvStatusNet);
-        tvLocationNet = (TextView) findViewById(R.id.tvLocationNet);
-
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+    @Nullable @Override public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.location, container, false);
+        ButterKnife.bind(this, view);
+        btnLocationSettings.setOnClickListener(v -> onClickLocationSettings(v));
+        locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
+        return view;
     }
 
     @Override
-    protected void onResume() throws SecurityException {
+    public void onResume() {
         super.onResume();
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                1000 * 10, 10, locationListener);
-        locationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER, 1000 * 10, 10,
-                locationListener);
-        checkEnabled();
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                    1000 * 10, 10, locationListener);
+            locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, 1000 * 10, 10,
+                    locationListener);
+            checkEnabled();
+        } catch (SecurityException e) {
+
+        }
+
     }
 
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
         locationManager.removeUpdates(locationListener);
     }
@@ -117,6 +124,5 @@ public class LocationActivity extends AppCompatActivity {
     public void onClickLocationSettings(View view) {
         startActivity(new Intent(
                 android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-    };
-
+    }
 }

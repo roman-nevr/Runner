@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="org.berendeev.roma.runner">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
@@ -18,35 +19,8 @@
             android:value="AIzaSyAh6ZOevUlu4tsfq2toycQ0pEePCqqllUY "/>
 
         <activity
-            android:name=".presentation.MainActivity"
+            android:name=".presentation.NavigationActivity"
             android:label="RunnerMain"
-            >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".presentation.LocationActivity"
-            android:label="StartAndroid"
-            >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".presentation.LocationApiActivity"
-            android:label="LocationApiActivity"
-            >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".presentation.YandexMapKit"
-            android:label="YandexMapKit"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

@@ -1,98 +1,63 @@
-package org.berendeev.roma.runner.utils;
+package org.berendeev.roma.runner.presentation.fragment;
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.berendeev.roma.runner.R;
+import org.berendeev.roma.runner.data.LocationRepository;
+import org.berendeev.roma.runner.presentation.MainActivity;
+import org.berendeev.roma.runner.utils.PermissionUtils;
 
-/**
- * Utility class for access to runtime permissions.
- */
-public abstract class PermissionUtils {
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
-    /**
-     * Requests the fine location permission. If a rationale with an additional explanation should
-     * be shown to the user, displays a dialog that triggers the request.
-     */
-    public static void requestPermission(FragmentActivity activity, int requestId,
-        String permission, boolean finishActivity) {
+
+public class MainFragment extends Fragment {
+
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private LocationRepository repository;
+
+    @Nullable @Override public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.location, container, false);
+        ButterKnife.bind(this, view);
+        repository = new LocationRepository(getActivity().getApplicationContext());
+        return view;
+    }
+
+    @Override public void onStart() {
+        super.onStart();
+        if (!repository.isPermissionsGranted()) {
+            // Permission to access the location is missing.
+            requestPermission(getActivity(), LOCATION_PERMISSION_REQUEST_CODE,
+                    Manifest.permission.ACCESS_FINE_LOCATION, true);
+        }else {
+            repository.test();
+        }
+    }
+
+    private void requestPermission(FragmentActivity activity, int requestId,
+                                   String permission, boolean finishActivity) {
         if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
             // Display a dialog with rationale.
-            RationaleDialog.newInstance(requestId, finishActivity)
+            MainActivity.RationaleDialog.newInstance(requestId, finishActivity)
                     .show(activity.getSupportFragmentManager(), "dialog");
         } else {
             // Location permission has not been granted yet, request it.
             ActivityCompat.requestPermissions(activity, new String[]{permission}, requestId);
 
-        }
-    }
-
-    /**
-     * Checks if the result contains a {@link PackageManager#PERMISSION_GRANTED} result for a
-     * permission from a runtime permissions request.
-     *
-     * @see ActivityCompat.OnRequestPermissionsResultCallback
-     */
-    public static boolean isPermissionGranted(String[] grantPermissions, int[] grantResults,
-        String permission) {
-        for (int i = 0;  i < grantPermissions.length; i++){
-            if (permission.equals(grantPermissions[i])){
-                return grantResults[i] == PackageManager.PERMISSION_GRANTED;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * A dialog that displays a permission denied message.
-     */
-    public static class PermissionDeniedDialog extends DialogFragment {
-
-        private static final String ARGUMENT_FINISH_ACTIVITY = "finish";
-
-        private boolean mFinishActivity = false;
-
-        /**
-         * Creates a new instance of this dialog and optionally finishes the calling Activity
-         * when the 'Ok' button is clicked.
-         */
-        public static PermissionDeniedDialog newInstance(boolean finishActivity) {
-            Bundle arguments = new Bundle();
-            arguments.putBoolean(ARGUMENT_FINISH_ACTIVITY, finishActivity);
-
-            PermissionDeniedDialog dialog = new PermissionDeniedDialog();
-            dialog.setArguments(arguments);
-            return dialog;
-        }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            mFinishActivity = getArguments().getBoolean(ARGUMENT_FINISH_ACTIVITY);
-
-            return new AlertDialog.Builder(getActivity())
-                    .setMessage(R.string.location_permission_denied)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .create();
-        }
-
-        @Override
-        public void onDismiss(DialogInterface dialog) {
-            super.onDismiss(dialog);
-            if (mFinishActivity) {
-                Toast.makeText(getActivity(), R.string.permission_required_toast,
-                        Toast.LENGTH_SHORT).show();
-                Log.d("myTag", "finish activity");
-                //getActivity().finish();
-            }
         }
     }
 
@@ -124,11 +89,11 @@ public abstract class PermissionUtils {
          * @param finishActivity Whether the calling Activity should be finished if the dialog is
          *                       cancelled.
          */
-        public static RationaleDialog newInstance(int requestCode, boolean finishActivity) {
+        public static PermissionUtils.RationaleDialog newInstance(int requestCode, boolean finishActivity) {
             Bundle arguments = new Bundle();
             arguments.putInt(ARGUMENT_PERMISSION_REQUEST_CODE, requestCode);
             arguments.putBoolean(ARGUMENT_FINISH_ACTIVITY, finishActivity);
-            RationaleDialog dialog = new RationaleDialog();
+            PermissionUtils.RationaleDialog dialog = new PermissionUtils.RationaleDialog();
             dialog.setArguments(arguments);
             return dialog;
         }
@@ -164,7 +129,7 @@ public abstract class PermissionUtils {
                         R.string.permission_required_toast,
                         Toast.LENGTH_SHORT)
                         .show();
-                //getActivity().finish();
+                getActivity().finish();
             }
         }
     }

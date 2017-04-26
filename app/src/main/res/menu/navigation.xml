@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/yandex_map"
+        android:icon="@drawable/ic_school"
+        android:orderInCategory="1"
+        android:title="YMK"/>
+
+    <item
+        android:id="@+id/main"
+        android:icon="@drawable/ic_bookmark_black"
+        android:orderInCategory="2"
+        android:title="MainTest"/>
+
+    <item
+        android:id="@+id/location"
+        android:icon="@drawable/ic_receipt_black"
+        android:orderInCategory="3"
+        android:title="Location"/>
+    <item
+        android:id="@+id/google_map"
+        android:icon="@drawable/ic_clear_black"
+        android:orderInCategory="3"
+        android:title="Location"/>
+
+</menu>
