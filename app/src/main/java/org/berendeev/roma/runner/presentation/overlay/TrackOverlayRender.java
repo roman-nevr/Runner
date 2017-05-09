@@ -22,10 +22,10 @@ public class TrackOverlayRender extends OverlayIRender {
     }
 
     @Override
-    public void draw(Canvas canvas, OverlayItem arg1) {
-        super.draw(canvas, arg1);
-        List<OverlayItem> oi = mOverlay.getOverlayItems();
-        if (oi.size() < 2)
+    public void draw(Canvas canvas, OverlayItem overlayItem) {
+        super.draw(canvas, overlayItem);
+        List<OverlayItem> overlayItems = mOverlay.getOverlayItems();
+        if (overlayItems.size() < 2)
             return;
         Paint mPaint = new Paint();
         mPaint.setDither(true);
@@ -35,12 +35,12 @@ public class TrackOverlayRender extends OverlayIRender {
         mPaint.setStrokeCap(Paint.Cap.ROUND);
         mPaint.setStrokeWidth(2);
         mPaint.setAntiAlias(true);
-        for (int i = 0; i < oi.size() - 1; i++) {
+        for (int i = 0; i < overlayItems.size() - 1; i++) {
             Path path = new Path();
             ScreenPoint p1 = mOverlay.getMapController().getScreenPoint(
-                    oi.get(i).getGeoPoint());
+                    overlayItems.get(i).getGeoPoint());
             ScreenPoint p2 = mOverlay.getMapController().getScreenPoint(
-                    oi.get(i + 1).getGeoPoint());
+                    overlayItems.get(i + 1).getGeoPoint());
             float angle = (float) (Math.atan2(p2.getY() - p1.getY(),
                     p2.getX()- p1.getX()) * 180 / 3.14);
             path.moveTo(p2.getX(), p2.getY());

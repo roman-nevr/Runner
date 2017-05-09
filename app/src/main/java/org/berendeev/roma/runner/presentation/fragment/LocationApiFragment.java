@@ -61,7 +61,6 @@ public class LocationApiFragment extends Fragment implements
 //    private LocationRepository repository;
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
-    private LocationSettingsRequest.Builder locationSettingsBuilder;
 
     private static final String TAG = "myTag";
 
@@ -132,7 +131,7 @@ public class LocationApiFragment extends Fragment implements
 
     private void requestLocationPermissions() {
         Log.d(TAG, "request permissions");
-//        PermissionUtils.requestPermission(getActivity(), LOCATION_PERMISSION_REQUEST_CODE,
+//        PermissionUtils.requestPermission(getActivity(), LOCATION_PERMISSION_REQUEST_ID,
 //                Manifest.permission.ACCESS_FINE_LOCATION, true);
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
     }
@@ -152,7 +151,7 @@ public class LocationApiFragment extends Fragment implements
     }
 
     private void checkSettings(){
-        locationSettingsBuilder = new LocationSettingsRequest.Builder()
+        LocationSettingsRequest.Builder locationSettingsBuilder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest);
         PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(googleApiClient,
@@ -175,11 +174,8 @@ public class LocationApiFragment extends Fragment implements
                             // Show the dialog by calling startResolutionForResult(),
                             // and check the result in onActivityResult().
                             Log.d(TAG, "RESOLUTION_REQUIRED");
-                            PendingIntent resolution = status.getResolution();
 
-                            if(status.hasResolution()) {
-                                startIntentSenderForResult(resolution.getIntentSender(), RESOLUTION_REQUEST_ID, null, 0, 0, 0, new Bundle());
-                            }
+                            requestResolution(status.getResolution());
 
 //                            status.startResolutionForResult(
 //                                    getActivity(),
@@ -195,6 +191,12 @@ public class LocationApiFragment extends Fragment implements
                 }
             }
         });
+    }
+
+    private void requestResolution(PendingIntent resolution) throws IntentSender.SendIntentException {
+        if(resolution != null) {
+            startIntentSenderForResult(resolution.getIntentSender(), RESOLUTION_REQUEST_ID, null, 0, 0, 0, new Bundle());
+        }
     }
 
     private void requestUpdates() throws SecurityException{

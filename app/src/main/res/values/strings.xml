@@ -5,4 +5,11 @@
     <string name="provider_gps">GPS</string>
     <string name="provider_network">Network</string>
     <string name="location_settings">Location settings</string>
+
+    <string name="start_label">Start</string>
+    <string name="stop_label">Stop</string>
+    <string name="bind_label">Bind</string>
+    <string name="unbind_label">Unbind</string>
+
+    <string name="clear_label">clear data</string>
 </resources>

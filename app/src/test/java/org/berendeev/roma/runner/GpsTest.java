@@ -10,6 +10,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import io.reactivex.subjects.BehaviorSubject;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest= Config.NONE)
 public class GpsTest {

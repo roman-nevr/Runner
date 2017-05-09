@@ -15,7 +15,9 @@ import org.berendeev.roma.runner.R;
 import org.berendeev.roma.runner.presentation.fragment.GoogleMapFragment;
 import org.berendeev.roma.runner.presentation.fragment.LocationApiFragment;
 import org.berendeev.roma.runner.presentation.fragment.LocationFragment;
+import org.berendeev.roma.runner.presentation.fragment.LocationRepositoryFragment;
 import org.berendeev.roma.runner.presentation.fragment.MainFragment;
+import org.berendeev.roma.runner.presentation.fragment.ServiceControlFragment;
 import org.berendeev.roma.runner.presentation.fragment.YandexMapKitFragment;
 
 
@@ -71,6 +73,7 @@ public class NavigationActivity extends AppCompatActivity {
         if (savedInstanceState == null){
             beginTransaction();
             showFirstFragment(LOCATION);
+//            navigation.setSelectedItemId(R.id.location);
             commitTransaction();
         }
 
@@ -105,7 +108,7 @@ public class NavigationActivity extends AppCompatActivity {
             case YANDEX_MAP:
                 return new YandexMapKitFragment();
             case LOCATION:
-                return new LocationApiFragment();
+                return new ServiceControlFragment();
             case MAIN:
                 return new LocationFragment();
             case GOOGLE_MAP:

@@ -5,6 +5,8 @@ import org.junit.Test;
 import java.util.Date;
 import java.util.Locale;
 
+import io.reactivex.subjects.BehaviorSubject;
+
 import static org.junit.Assert.*;
 
 /**
@@ -22,5 +24,18 @@ public class ExampleUnitTest {
     public void stringFormat(){
         String string = (String.format(Locale.getDefault(), "time: %1$tF %1$tT", new Date(System.currentTimeMillis())));
         System.out.println(string);
+    }
+
+    @Test
+    public void subject() throws InterruptedException {
+        BehaviorSubject<Integer> subject = BehaviorSubject.create();
+        subject.subscribe(integer -> {
+            System.out.println(integer);
+        });
+        subject.getValue();
+        Thread.sleep(1000);
+        subject.onNext(2);
+        subject.onNext(null);
+        Thread.sleep(1000);
     }
 }
