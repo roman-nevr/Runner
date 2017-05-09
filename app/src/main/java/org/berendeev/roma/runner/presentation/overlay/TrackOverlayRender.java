@@ -15,7 +15,7 @@ import ru.yandex.yandexmapkit.utils.ScreenPoint;
 
 public class TrackOverlayRender extends OverlayIRender {
 
-    Overlay mOverlay;
+    private Overlay mOverlay;
 
     public TrackOverlayRender(Overlay mOverlay) {
         this.mOverlay = mOverlay;

@@ -35,6 +35,7 @@ import org.berendeev.roma.runner.domain.entity.LocationState;
 
 import io.reactivex.subjects.BehaviorSubject;
 
+import static org.berendeev.roma.runner.data.LocationApiRepository.State.connected;
 import static org.berendeev.roma.runner.data.LocationApiRepository.State.disconnected;
 import static org.berendeev.roma.runner.data.LocationApiRepository.State.notAvailable;
 import static org.berendeev.roma.runner.data.LocationApiRepository.State.ok;
@@ -81,6 +82,7 @@ public class LocationApiRepository implements ConnectionCallbacks, OnConnectionF
 
     @Override public void onConnected(@Nullable Bundle bundle) {
         try {
+            locationStateSubject.onNext(DEFAULT.toBuilder().state(connected).build());
             Location lastLocation = getLastLocation();
             if (lastLocation == null) {
                 LocationAvailability locationAvailability = LocationServices.FusedLocationApi.getLocationAvailability(googleApiClient);
@@ -89,7 +91,7 @@ public class LocationApiRepository implements ConnectionCallbacks, OnConnectionF
                     locationStateSubject.onNext(DEFAULT);
                 }
             }
-            startLocationUpdates();
+//            startLocationUpdates();
         } catch (SecurityException e) {
             //TODO
             stateSubject.onNext(disconnected);
@@ -265,7 +267,7 @@ public class LocationApiRepository implements ConnectionCallbacks, OnConnectionF
     }
 
     public enum State {
-        ok, notAvailable, requestPermissions, requestResolution, permissionsRejected, disconnected
+        ok, connected, notAvailable, requestPermissions, requestResolution, permissionsRejected, disconnected
     }
 
     public static void requestResolution(Fragment fragment, PendingIntent pendingIntent) throws IntentSender.SendIntentException {

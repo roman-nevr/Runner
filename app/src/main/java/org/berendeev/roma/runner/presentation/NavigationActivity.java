@@ -71,10 +71,10 @@ public class NavigationActivity extends AppCompatActivity {
         fragmentManager = getSupportFragmentManager();
 
         if (savedInstanceState == null){
-            beginTransaction();
-            showFirstFragment(LOCATION);
-//            navigation.setSelectedItemId(R.id.location);
-            commitTransaction();
+//            beginTransaction();
+//            showFirstFragment(LOCATION);
+            navigation.setSelectedItemId(R.id.location);
+//            commitTransaction();
         }
 
     }

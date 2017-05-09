@@ -42,7 +42,7 @@
     </android.support.design.widget.TextInputLayout>
 
     <TextView
-        android:id="@+id/text"
+        android:id="@+id/location"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/textInputLayout"
@@ -58,7 +58,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Send"
-        app:layout_constraintTop_toBottomOf="@+id/text"
+        app:layout_constraintTop_toBottomOf="@+id/location"
         app:layout_constraintRight_toLeftOf="@+id/guideline_center"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginTop="8dp"

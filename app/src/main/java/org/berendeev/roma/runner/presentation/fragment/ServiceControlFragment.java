@@ -1,15 +1,23 @@
 package org.berendeev.roma.runner.presentation.fragment;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.ServiceConnection;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import org.berendeev.roma.runner.R;
 import org.berendeev.roma.runner.data.LocationApiRepository;
@@ -24,13 +33,20 @@ import org.berendeev.roma.runner.domain.LocationHistoryRepository;
 import org.berendeev.roma.runner.presentation.App;
 import org.berendeev.roma.runner.presentation.service.LocationService;
 
+import java.util.Date;
+import java.util.Locale;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static org.berendeev.roma.runner.presentation.service.LocationService.COMMAND;
-import static org.berendeev.roma.runner.presentation.service.LocationService.START_UPDATE;
+import static org.berendeev.roma.runner.presentation.service.LocationService.LOCATION;
+import static org.berendeev.roma.runner.presentation.service.LocationService.NEED_PERMISSIONS;
+import static org.berendeev.roma.runner.presentation.service.LocationService.NEED_RESOLUTION;
+import static org.berendeev.roma.runner.presentation.service.LocationService.DATA;
+import static org.berendeev.roma.runner.presentation.service.LocationService.START;
 
 
 public class ServiceControlFragment extends Fragment {
@@ -38,12 +54,14 @@ public class ServiceControlFragment extends Fragment {
     private static final String LOG_TAG = "myTag";
     public static final int REQUEST_CODE = 42;
     public static final String PENDING_INTENT = "pending_intent";
+    public static final String BROADCAST_ACTION = "org.berendeev.roma.runner";
     @BindView(R.id.btn_send) Button btnSend;
     @BindView(R.id.btn_bind) Button btnBind;
     @BindView(R.id.btn_start) Button btnStart;
     @BindView(R.id.btn_stop) Button btnStop;
     @BindView(R.id.btn_clear) Button btnClear;
     @BindView(R.id.progress_bind) ProgressBar progressBind;
+    @BindView(R.id.location) TextView tvLocation;
 
     @BindView(R.id.distance) EditText etDistance;
     private Intent intent;
@@ -51,6 +69,7 @@ public class ServiceControlFragment extends Fragment {
     private ServiceConnection serviceConnection;
     private LocationService locationService;
     private LocationHistoryRepository locationHistoryRepository;
+    private BroadcastReceiver broadcastReceiver;
 
 
     @Nullable @Override public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -60,8 +79,82 @@ public class ServiceControlFragment extends Fragment {
         initUi();
         initService();
         initDi();
+        registerReceiver();
 
         return view;
+    }
+
+    private void registerReceiver() {
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override public void onReceive(Context context, Intent intent) {
+                int result = intent.getIntExtra(LocationService.RESULT, -1);
+
+                switch (result){
+                    case NEED_RESOLUTION:{
+                        PendingIntent resolution = intent.getParcelableExtra(DATA);
+                        try {
+                            LocationApiRepository.requestResolution(ServiceControlFragment.this, resolution);
+                        } catch (IntentSender.SendIntentException e) {
+                            e.printStackTrace();
+                            //бяда
+                        }
+                        break;
+                    }
+                    case NEED_PERMISSIONS:{
+                        LocationApiRepository.requestLocationPermissions(ServiceControlFragment.this);
+                        break;
+                    }
+                    case LOCATION:{
+                        Location location = intent.getParcelableExtra(DATA);
+                        tvLocation.setText(locationToString(location));
+                    }
+                }
+            }
+        };
+
+
+//        AsyncTaskLoader<String> loader;
+//        LoaderManager manager = getActivity().getSupportLoaderManager();
+        IntentFilter intFilt = new IntentFilter(BROADCAST_ACTION);
+//        // регистрируем (включаем) BroadcastReceiver
+//        getActivity().registerReceiver(broadcastReceiver, intFilt);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(broadcastReceiver, intFilt);
+    }
+
+    private String locationToString(Location location){
+        StringBuilder builder = new StringBuilder();
+        builder.append("latitude: ");
+        builder.append(location.getLatitude());
+        builder.append("\n");
+
+        builder.append("longitude: ");
+        builder.append(location.getLongitude());
+        builder.append("\n");
+
+        builder.append("accuracy: ");
+        builder.append(location.getAccuracy());
+        builder.append("\n");
+
+        builder.append(String.format(Locale.getDefault(), "time: %1$tF %1$tT", new Date(location.getTime())));
+        builder.append("\n");
+
+        builder.append("speed: ");
+        builder.append(location.getSpeed());
+        builder.append("\n");
+
+        builder.append("bearing: ");
+        builder.append(location.getBearing());
+        builder.append("\n");
+
+        builder.append("test: ");
+        builder.append(location.toString());
+        builder.append("\n");
+
+        return builder.toString();
+    }
+
+    private void unregisterReceiver(){
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(broadcastReceiver);
     }
 
     private void initDi() {
@@ -94,24 +187,16 @@ public class ServiceControlFragment extends Fragment {
 
     private void createIntent() {
         intent = new Intent(getActivity(), LocationService.class);
-        Intent nullIntent = new Intent();
-        PendingIntent pendingResult = getActivity().createPendingResult(REQUEST_CODE, nullIntent, 0);
-        intent.putExtra(PENDING_INTENT, pendingResult);
+//        Intent nullIntent = new Intent();
+//        PendingIntent pendingResult = getActivity().createPendingResult(REQUEST_CODE, nullIntent, 0);
+//        intent.putExtra(PENDING_INTENT, pendingResult);
     }
 
     @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_CODE && resultCode == 22){
-            try {
-                LocationApiRepository.requestResolution(this, intent.getParcelableExtra(PENDING_INTENT));
-            } catch (IntentSender.SendIntentException e) {
-                e.printStackTrace();
-            }
-        }
-        if (requestCode == REQUEST_CODE && resultCode == 21){
-            LocationApiRepository.requestLocationPermissions(this);
-        }
-        if(requestCode == REQUEST_CODE && requestCode == 20){
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(locationService != null){
+            locationService.onPermissionsResult(requestCode, resultCode);
         }
     }
 
@@ -133,12 +218,12 @@ public class ServiceControlFragment extends Fragment {
             }
         });
         btnStart.setOnClickListener(v -> {
-            intent.putExtra(COMMAND, START_UPDATE);
-            getActivity().getApplicationContext().startService(intent);
+            intent.putExtra(COMMAND, START);
+            getActivity().startService(intent);
             showStop();
         });
         btnStop.setOnClickListener(v -> {
-            getActivity().getApplicationContext().stopService(intent);
+            getActivity().stopService(intent);
             showStart();
         });
         btnClear.setOnClickListener(v -> {
@@ -184,8 +269,17 @@ public class ServiceControlFragment extends Fragment {
 
     @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if(LocationApiRepository.isPermissionsGranted(getActivity().getApplicationContext())){
-            intent.putExtra(COMMAND, START_UPDATE);
+            intent.putExtra(COMMAND, START);
             getActivity().startService(intent);
+        }
+    }
+
+    @Override public void onStop() {
+        super.onStop();
+        unregisterReceiver();
+        if(locationService != null){
+            getActivity().unbindService(serviceConnection);
+            locationService = null;
         }
     }
 }

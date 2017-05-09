@@ -3,13 +3,16 @@ package org.berendeev.roma.runner.presentation.service;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.berendeev.roma.runner.data.LocationApiRepository;
 import org.berendeev.roma.runner.domain.LocationHistoryRepository;
 import org.berendeev.roma.runner.presentation.App;
+import org.berendeev.roma.runner.presentation.fragment.ServiceControlFragment;
 
 import io.reactivex.disposables.CompositeDisposable;
 
@@ -23,16 +26,21 @@ public class LocationService extends Service {
 
     MyBinder binder = new MyBinder();
     private CompositeDisposable disposable;
-    private PendingIntent pendingIntent;
+    private Intent intent;
 
     public LocationService() {
     }
 
     final String LOG_TAG = "myTag";
     public static final String COMMAND = "command";
+    public static final String RESULT = "result";
+    public static final String DATA = "data";
     public static final int START = 0;
-    public static final int CONNECT = 1;
-    public static final int START_UPDATE = 2;
+    public static final int RESTART = 1;
+    public static final int NEED_RESOLUTION = 1;
+    public static final int NEED_PERMISSIONS = 2;
+    public static final int LOCATION = 3;
+
 
     public void onCreate() {
         super.onCreate();
@@ -61,18 +69,12 @@ public class LocationService extends Service {
         Log.d(LOG_TAG, "MyService startCommand, flags: " + flags + ", startId: " + startId);
 //        this.stopSelf(startId);
 //        return super.onStartCommand(intent, flags, startId);
+
+        this.intent = new Intent(ServiceControlFragment.BROADCAST_ACTION);
+
         int command = intent.getIntExtra(COMMAND, -1);
         switch (command){
             case START:{
-
-                break;
-            }
-            case CONNECT:{
-                locationApiRepository.connect();
-                subscribeOnRequests();
-                break;
-            }
-            case START_UPDATE:{
                 if(locationApiRepository.isConnected()){
                     locationApiRepository.startLocationUpdates();
                 }else {
@@ -80,13 +82,28 @@ public class LocationService extends Service {
                     subscribeOnRequests();
                 }
                 subscribeOnLocation();
+                break;
             }
-        }
-        if (intent.hasExtra(PENDING_INTENT)){
-            pendingIntent = intent.getParcelableExtra(PENDING_INTENT);
         }
 
         return START_NOT_STICKY;
+    }
+
+    private void sendResult(int resultCode) {
+        intent.putExtra(RESULT, resultCode);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    private void sendResult(int resultCode, PendingIntent resolution) {
+        intent.putExtra(RESULT, resultCode);
+        intent.putExtra(DATA, resolution);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    private void sendResult(int resultCode, Location location) {
+        intent.putExtra(RESULT, resultCode);
+        intent.putExtra(DATA, location);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     private void subscribeOnLocation(){
@@ -94,6 +111,7 @@ public class LocationService extends Service {
                 .getLocationObservable()
                 .subscribe(location -> {
                     historyRepository.saveLocation(location).subscribe();
+                    sendResult(LOCATION, location);
                 }));
     }
 
@@ -103,21 +121,27 @@ public class LocationService extends Service {
                 .subscribe(locationState -> {
                     switch (locationState.state()){
                         case requestPermissions:{
-                            pendingIntent.send(21);
+                            sendResult(NEED_PERMISSIONS);
+//                            pendingIntent.send(21);
                             break;
                         }
                         case requestResolution:{
-                            pendingIntent.send(this, 22, locationState.data());
+                            sendResult(NEED_RESOLUTION, (PendingIntent) locationState.data().getParcelableExtra(PENDING_INTENT));
+//                            pendingIntent.send(this, 22, locationState.data());
                             break;
                         }
                         case notAvailable:{
-
+                            break;
                         }
                         case permissionsRejected:{
-
+                            break;
+                        }
+                        case connected:{
+                            locationApiRepository.startLocationUpdates();
+                            break;
                         }
                         case ok:{
-
+                            break;
                         }
                     }
 
@@ -129,6 +153,10 @@ public class LocationService extends Service {
         Log.d(LOG_TAG, "MyService onDestroy");
         locationApiRepository.disconnect();
         disposable.clear();
+    }
+
+    public void onPermissionsResult(int requestCode, int resultCode){
+        locationApiRepository.onRequestResult(requestCode, resultCode);
     }
 
     public void schedule() {
