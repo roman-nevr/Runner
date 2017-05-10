@@ -24,37 +24,37 @@ public class MainModule {
     }
 
     @Provides
-    @Singleton
+    @MyScope
     public Context provideContext(){
         return context;
     }
 
     @Provides
-    @Singleton
+    @MyScope
     public LocationApiRepository provideLocationApiRepository(Context context){
         return new LocationApiRepository(context);
     }
 
     @Provides
-    @Singleton
+    @MyScope
     public DatabaseOpenHelper provideDatabaseOpenHelper(Context context){
         return new DatabaseOpenHelper(context);
     }
 
     @Provides
-    @Singleton
+    @MyScope
     public LocationHistoryRepository provideLocationHistoryRepository(LocationDataSource locationDataSource, PreferencesDataSource preferencesDataSource){
         return new LocationHistoryRepositoryImpl(locationDataSource, preferencesDataSource);
     }
 
     @Provides
-    @Singleton
+    @MyScope
     public LocationDataSource provideLocationDataSource(DatabaseOpenHelper openHelper){
         return new LocationDataSource(openHelper);
     }
 
     @Provides
-    @Singleton
+    @MyScope
     public PreferencesDataSource providePreferencesDataSource(Context context){
         return new PreferencesDataSource(context);
     }

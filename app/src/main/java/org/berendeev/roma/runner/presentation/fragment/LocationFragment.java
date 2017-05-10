@@ -54,6 +54,8 @@ public class LocationFragment extends Fragment {
             checkEnabled();
         } catch (SecurityException e) {
 
+        } catch (RuntimeException e){
+
         }
 
     }

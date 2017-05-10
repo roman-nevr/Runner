@@ -14,9 +14,6 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,10 +28,13 @@ import org.berendeev.roma.runner.R;
 import org.berendeev.roma.runner.data.LocationApiRepository;
 import org.berendeev.roma.runner.domain.LocationHistoryRepository;
 import org.berendeev.roma.runner.presentation.App;
+import org.berendeev.roma.runner.presentation.presenter.LocationPresenter;
 import org.berendeev.roma.runner.presentation.service.LocationService;
 
 import java.util.Date;
 import java.util.Locale;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -42,10 +42,10 @@ import butterknife.ButterKnife;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static org.berendeev.roma.runner.presentation.service.LocationService.COMMAND;
+import static org.berendeev.roma.runner.presentation.service.LocationService.DATA;
 import static org.berendeev.roma.runner.presentation.service.LocationService.LOCATION;
 import static org.berendeev.roma.runner.presentation.service.LocationService.NEED_PERMISSIONS;
 import static org.berendeev.roma.runner.presentation.service.LocationService.NEED_RESOLUTION;
-import static org.berendeev.roma.runner.presentation.service.LocationService.DATA;
 import static org.berendeev.roma.runner.presentation.service.LocationService.START;
 
 
@@ -55,6 +55,7 @@ public class ServiceControlFragment extends Fragment {
     public static final int REQUEST_CODE = 42;
     public static final String PENDING_INTENT = "pending_intent";
     public static final String BROADCAST_ACTION = "org.berendeev.roma.runner";
+    public static final String MY_TAG = "myTag";
     @BindView(R.id.btn_send) Button btnSend;
     @BindView(R.id.btn_bind) Button btnBind;
     @BindView(R.id.btn_start) Button btnStart;
@@ -62,6 +63,7 @@ public class ServiceControlFragment extends Fragment {
     @BindView(R.id.btn_clear) Button btnClear;
     @BindView(R.id.progress_bind) ProgressBar progressBind;
     @BindView(R.id.location) TextView tvLocation;
+    @BindView(R.id.test_text) TextView tvTest;
 
     @BindView(R.id.distance) EditText etDistance;
     private Intent intent;
@@ -70,6 +72,8 @@ public class ServiceControlFragment extends Fragment {
     private LocationService locationService;
     private LocationHistoryRepository locationHistoryRepository;
     private BroadcastReceiver broadcastReceiver;
+
+    @Inject LocationPresenter presenter;
 
 
     @Nullable @Override public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -81,6 +85,14 @@ public class ServiceControlFragment extends Fragment {
         initDi();
         registerReceiver();
 
+        Location location = new Location("23");
+        location.setLongitude(0.0123d);
+
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("re", location);
+        System.out.println(bundle);
+
+        bundle.getParcelable("re");
         return view;
     }
 
@@ -135,7 +147,7 @@ public class ServiceControlFragment extends Fragment {
         builder.append(location.getAccuracy());
         builder.append("\n");
 
-        builder.append(String.format(Locale.getDefault(), "time: %1$tF %1$tT", new Date(location.getTime())));
+        builder.append(formatTime(location.getTime()));
         builder.append("\n");
 
         builder.append("speed: ");
@@ -153,12 +165,18 @@ public class ServiceControlFragment extends Fragment {
         return builder.toString();
     }
 
+    private String formatTime(long time) {
+        return String.format(Locale.getDefault(), "time: %1$tF %1$tT", new Date(time));
+    }
+
     private void unregisterReceiver(){
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(broadcastReceiver);
     }
 
     private void initDi() {
+        App.getInstance().getMainComponent().inject(this);
         locationHistoryRepository = App.getInstance().getMainComponent().provideLocationHistoryRepository();
+        tvTest.setText(formatTime(presenter.time));
     }
 
     private void initService() {
@@ -274,6 +292,32 @@ public class ServiceControlFragment extends Fragment {
         }
     }
 
+    @Override public void onPause() {
+        super.onPause();
+
+        if (this.isRemoving()){
+            Log.d(MY_TAG, "Removing");
+        }
+
+        if(this.isDetached()){
+            Log.d(MY_TAG, "Detached");
+        }
+
+        Log.d(MY_TAG, "finishing: "+ getActivity().isFinishing() );
+
+        Log.d(MY_TAG, "ChangingConfigurations: " + getActivity().isChangingConfigurations());
+
+//        if (getActivity().is)
+//        if(!isStoped()){
+//            presenter.setView(this);
+//            presenter.setText();
+//        }
+        if(isStoped()){
+            App.getInstance().clearMainComponent();
+        }
+
+    }
+
     @Override public void onStop() {
         super.onStop();
         unregisterReceiver();
@@ -282,4 +326,14 @@ public class ServiceControlFragment extends Fragment {
             locationService = null;
         }
     }
+
+    private boolean isStoped(){
+        return getActivity().isFinishing();
+    }
+
+
+    public void setText(String text){
+        tvTest.setText(text);
+    }
+
 }

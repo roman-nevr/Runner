@@ -31,7 +31,7 @@ public class App extends Application {
     }
 
     private void initDi() {
-        mainComponent = DaggerMainComponent.builder().mainModule(new MainModule(getApplicationContext())).build();
+
 //        mainComponent.provideLocationApiRepository().connect();
     }
 
@@ -40,7 +40,14 @@ public class App extends Application {
     }
 
     public MainComponent getMainComponent() {
+        if(mainComponent == null){
+            mainComponent = DaggerMainComponent.builder().mainModule(new MainModule(getApplicationContext())).build();
+        }
         return mainComponent;
+    }
+
+    public void clearMainComponent(){
+        mainComponent = null;
     }
 
     private void initStetho(){
